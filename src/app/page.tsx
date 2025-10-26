@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import CameraCapture from "@/components/CameraCapture";
 
 export default function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -10,10 +11,6 @@ const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
 // Ref to store the audio "chunks" (pieces)
 const audioChunksRef = useRef<Blob[]>([]);
-
-// ... (next steps below)
-
-// ... inside the AudioRecorder component
 
 const handleStartRecording = async () => {
   try {
@@ -94,20 +91,23 @@ const handleSendAudio = async () => {
         <p className="animate-bounce text-[90px] font-regular pb-1"> 
           cookingLola 
         </p>
-    <button className="py-4 px-4 bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110 rounded-xl transition-all font-sans"
-      onClick={isRecording ? handleStopRecording : handleStartRecording}
-    >
-      {isRecording ? "Listening..." : "How can Lola help?"}
-    </button>
+    <div className="w-full max-w-lg">
+      <button className="w-full py-4 px-4 bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110 rounded-lg transition-all font-sans"
+        onClick={isRecording ? handleStopRecording : handleStartRecording}
+      >
+        {isRecording ? "Listening..." : "How can Lola help?"}
+      </button>
+    </div>
 
     {/* Show the recorded audio and the send button */}
     {audioBlob && (
       <div className="flex flex-col items-center space-y-4">
         <audio src={URL.createObjectURL(audioBlob)} controls />
-        <button className="font-sans content-center" onClick={handleSendAudio}>Send to Lola</button>
+        <button className="py-4 px-4 bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110 rounded-lg transition-all font-sans" onClick={handleSendAudio}>Send to Lola</button>
       </div>
     )}
 
+    <CameraCapture />
     </div>
 
     
