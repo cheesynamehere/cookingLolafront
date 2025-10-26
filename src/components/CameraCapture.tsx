@@ -65,7 +65,7 @@ export default function CameraCapture() {
   };
 
   // --- Function 2: Take Photo ---
-  const takePhoto = () => {
+  const takePhoto = async () => {
     // We check our refs and the stream to make TypeScript happy
     if (!videoRef.current || !canvasRef.current || !stream) {
       console.error("Video ref, canvas ref, or stream not found");
@@ -81,20 +81,36 @@ export default function CameraCapture() {
     const canvas = canvasRef.current;
     canvas.width = width;
     canvas.height = height;
-
-    // 3. Draw the current video frame onto the canvas
-    // We use a "non-null assertion" (!) because we're sure getContext('2d') will work
     const context = canvas.getContext('2d')!; 
     context.drawImage(video, 0, 0, width, height);
-
-    // 4. Get the image data from the canvas as a base64 string
     const dataUrl = canvas.toDataURL('image/png');
-
-    // 5. Set the photo state
     setPhoto(dataUrl);
-
-    // 6. Stop the camera stream
     closeCamera();
+
+    setIsSending(true);
+    setError(null);
+    setLolaReply(null);
+
+    try {
+      const blob = await (await fetch(dataUrl)).blob();
+      const formData = new FormData();
+      formData.append('photo', blob, 'photo.png');
+  
+      const response = await fetch("/api/upload-image", { method: "POST", body: formData });
+  
+      if (!response.ok) throw new Error("Lola didn't get the photo.");
+  
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBlob = new Blob([arrayBuffer], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setLolaReply(audioUrl);
+    } catch (err) {
+      console.error("Error sending photo to Lola:", err);
+      setError("There was an error sending the photo to Lola.");
+    } finally {
+      setIsSending(false);
+    }
+
   };
 
   // --- Function 3: Close Camera (Helper) ---
@@ -160,7 +176,14 @@ export default function CameraCapture() {
       <div className="w-full mb-4">
         {!photo && (
           <button
-            onClick={stream ? takePhoto : openCamera}
+            onClick={() => {
+              if (stream) {
+                takePhoto();
+              } else {
+                openCamera();
+              }
+            }}
+            disabled={isSending}
             className={`active:scale-95 active:translate-y-[1px] shadow-lg cursor-pointer 
               w-full px-4 py-4 text-white rounded-full shadow-lg transition-all duration-200 
               hover:scale-110 ${
@@ -211,17 +234,6 @@ export default function CameraCapture() {
         </div>
       )}
 
-      {photo && !isSending && (
-      <button
-        onClick={sendToLola}
-        className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full px-6 py-3 
-           text-white bg-blue-500 rounded-full shadow-lg transition-all duration-200 
-          hover:bg-blue-600 mt-4"
-      >
-        🚀 Send to Lola
-       </button>
-      )}
-
       {isSending && (
         <p className="mt-4 text-gray-600 font-medium">Sending photo to Lola...</p>
       )}
@@ -229,7 +241,7 @@ export default function CameraCapture() {
     {lolaReply && (
       <div className="mt-6 flex flex-col items-center space-y-3">
         <p className="text-lg font-semibold">🎧 Lola’s Response:</p>
-        <audio src={lolaReply} controls autoPlay className="w-full max-w-md" />
+        <audio src={lolaReply} autoPlay className="w-full max-w-md" />
       </div>
     )}
     </div>

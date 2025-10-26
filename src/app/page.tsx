@@ -50,22 +50,31 @@ const handleStartRecording = async () => {
   }
 };
 
-const handleStopRecording = () => {
+const handleStopRecordingAndSend = () => {
   if (mediaRecorderRef.current && isRecording) {
+    mediaRecorderRef.current.onstop = async () => {
+      const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+      setAudioBlob(blob);
+
+      // Stop the microphone tracks
+      mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+
+      // Immediately send the audio
+      await handleSendAudio(blob);
+    };
+
     mediaRecorderRef.current.stop();
     setIsRecording(false);
   }
 };
 
-const handleSendAudio = async () => {
-  if (!audioBlob) return;
-
+const handleSendAudio = async (blob: Blob) => {
   const formData = new FormData();
-
-  formData.append("audio", audioBlob, "recording.wav");
+  formData.append("audio", blob, "recording.wav");
 
   try {
     setIsSending(true);
+
     const response = await fetch("/api/upload-audio", {
       method: "POST",
       body: formData,
@@ -77,22 +86,20 @@ const handleSendAudio = async () => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    const blob = new Blob([arrayBuffer], { type: "audio/wav" });
-
-    const url = URL.createObjectURL(blob);
+    const replyBlob = new Blob([arrayBuffer], { type: "audio/wav" });
+    const url = URL.createObjectURL(replyBlob);
     setReplyAudio(url);
-    alert("Lola sent a reply!");
   } catch (error) {
     console.error("Error in fetch:", error);
   } finally {
     setIsSending(false);
+  }
   };
-}
 
 
   return (
 
-    <div className="flex flex-col justify-center items-center h-screen text-white bg-animated-gradient animate-gradient">
+    <div className="min-h-full h-screen flex flex-col justify-center items-center text-white bg-animated-gradient animate-gradient">
 
         <p className="bg-clip-text text-transparent 
         bg-gradient-to-r from-amber-200 via-yellow-100 to-white animate-shimmer 
@@ -108,7 +115,7 @@ const handleSendAudio = async () => {
         bg-gradient-to-b from-amber-400 to-amber-600
         hover:bg-[#e1b474] hover:scale-110
         rounded-full transition-all shadow-lg"
-          onClick={isRecording ? handleStopRecording : handleStartRecording}
+          onClick={isRecording ? handleStopRecordingAndSend : handleStartRecording}
         >
           {isRecording ? "Listening..." : "🧑‍🍳 How can Lola help?"}
         </button>
@@ -124,30 +131,15 @@ const handleSendAudio = async () => {
       </div>
     )}
 
-    {audioBlob && (
-      <div className="flex flex-col items-center space-y-4">
-        <audio className="py-4" src={URL.createObjectURL(audioBlob)} controls />
-        <button
-          onClick={handleSendAudio}
-          disabled={isSending}
-        className="shadow-lg active:scale-95 active:translate-y-[2px] cursor-pointer py-4 px-4
-        bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110
-        rounded-full transition-all
-        transition ${isSending ? 'opacity-50 cursor-not-allowed' : ''}"
-        >
-          {isSending ? "Sending to Lola..." : "Send to Lola!"}
-        </button>
-      </div>
-    )}
-
     {replyAudio && (
     <div className="flex flex-col items-center space-y-2">
       <p className="text-lg font-semibold">🎧 Lola’s Response:</p>
-      <audio src={replyAudio} controls autoPlay />
+      <audio src={replyAudio} autoPlay />
     </div>
     )}
 
     <CameraCapture />
+
     </div>
 
 
