@@ -1,6 +1,3 @@
-// src/components/CameraCapture.tsx
-// (This is the TypeScript version)
-
 import { useState, useRef, useEffect } from 'react';
 
 export default function CameraCapture() {
@@ -129,7 +126,9 @@ export default function CameraCapture() {
         {!photo && (
           <button
             onClick={stream ? takePhoto : openCamera}
-            className={`font-sans w-full px-4 py-4 text-white rounded-lg shadow-lg transition-all duration-200 hover:scale-110 ${
+            className={`active:scale-95 active:translate-y-[1px] shadow-lg cursor-pointer font-sans 
+              w-full px-4 py-4 text-white rounded-full shadow-lg transition-all duration-200 
+              hover:scale-110 ${
               stream
                 ? 'bg-red-500 hover:bg-red-600' // "Take Photo" style
                 : 'bg-[#fca020] hover:bg[#412B0DFF' // "Open Camera" style
@@ -142,7 +141,9 @@ export default function CameraCapture() {
         {photo && (
            <button
             onClick={retakePhoto}
-            className="w-full px-6 py-3 font-bold text-white bg-green-500 rounded-lg shadow-lg transition-all duration-200 hover:bg-green-600"
+            className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full px-6 py-3 
+            font-bold text-white bg-green-500 rounded-full shadow-lg transition-all duration-200 
+            hover:bg-green-600"
           >
             🔄 Retake Photo
           </button>
