@@ -90,32 +90,24 @@ const handleSendAudio = async () => {
     console.error("Error in fetch:", error);
   } finally {
     setIsSending(false);
-  }
-
-  {replyAudio && (
-  <div className="flex flex-col items-center space-y-2">
-    <p className="text-lg font-semibold">🎧 Lola’s Response:</p>
-    <audio src={replyAudio} controls autoPlay />
-  </div>
-  )}
-
-};
+  };
+}
 
 
   return (
 
     <div className="flex flex-col justify-center items-center h-screen text-white">
-        <p className="animate-bounce text-[90px] font-regular pb-1"> 
-          cookingLola 
+        <p className="animate-bounce text-[90px] font-regular pb-1">
+          cookingLola
         </p>
         <p>
           Talk to Lola while you cook! 🍳
         </p>
     <div className="w-full max-w-lg">
-      <button className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full 
+      <button className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full
       py-4 px-4
-      bg-gradient-to-b from-amber-400 to-amber-600  
-      hover:bg-[#e1b474] hover:scale-110 
+      bg-gradient-to-b from-amber-400 to-amber-600
+      hover:bg-[#e1b474] hover:scale-110
       rounded-full transition-all font-sans shadow-lg"
         onClick={isRecording ? handleStopRecording : handleStartRecording}
       >
@@ -130,20 +122,26 @@ const handleSendAudio = async () => {
         <button
           onClick={handleSendAudio}
           disabled={isSending}
-        className="shadow-lg active:scale-95 active:translate-y-[2px] cursor-pointer py-4 px-4 
-        bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110 
+        className="shadow-lg active:scale-95 active:translate-y-[2px] cursor-pointer py-4 px-4
+        bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110
         rounded-full transition-all font-sans
         transition ${isSending ? 'opacity-50 cursor-not-allowed' : ''}"
         >
-          {isSending ? "Sending to Lola..." : "Send to Lola!"} 
+          {isSending ? "Sending to Lola..." : "Send to Lola!"}
         </button>
       </div>
+    )}
+    {replyAudio && (
+    <div className="flex flex-col items-center space-y-2">
+      <p className="text-lg font-semibold">🎧 Lola’s Response:</p>
+      <audio src={replyAudio} controls autoPlay />
+    </div>
     )}
 
     <CameraCapture />
     </div>
 
-    
+
   );
 
 }
