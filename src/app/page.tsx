@@ -1,65 +1,116 @@
+"use client";
 import Image from "next/image";
+import { useState, useRef } from "react";
 
-export default function Home() {
+export default function AudioRecorder() {
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+// Ref for the MediaRecorder object
+const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+// Ref to store the audio "chunks" (pieces)
+const audioChunksRef = useRef<Blob[]>([]);
+
+// ... (next steps below)
+
+// ... inside the AudioRecorder component
+
+const handleStartRecording = async () => {
+  try {
+    // 1. Ask for permission and get the audio stream
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    setIsRecording(true);
+    audioChunksRef.current = []; // Clear previous chunks
+
+    // 2. Create the MediaRecorder instance
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorderRef.current = mediaRecorder;
+
+    // 3. Save chunks as they become available
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunksRef.current.push(event.data);
+      }
+    };
+
+    // 4. When recording stops, combine the chunks
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+      setAudioBlob(blob);
+
+      // Stop the microphone tracks (turns off the "recording" light)
+      stream.getTracks().forEach((track) => track.stop());
+    };
+
+    // 5. Start recording
+    mediaRecorder.start();
+
+  } catch (error) {
+    console.error("Error accessing the microphone:", error);
+  }
+};
+
+const handleStopRecording = () => {
+  if (mediaRecorderRef.current && isRecording) {
+    mediaRecorderRef.current.stop();
+    setIsRecording(false);
+  }
+};
+
+// ... inside the AudioRecorder component
+
+const handleSendAudio = async () => {
+  if (!audioBlob) return;
+
+  // 1. Create FormData
+  const formData = new FormData();
+
+  // 2. Append the Blob (the audio) as a file
+  // "audio" is the field name the backend will read
+  formData.append("audio", audioBlob, "recording.wav");
+
+  try {
+    // 3. Send it to the backend (API Route)
+    const response = await fetch("/api/upload-audio", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (response.ok) {
+      alert("Audio uploaded successfully!");
+    } else {
+      alert("Error uploading the audio.");
+    }
+  } catch (error) {
+    console.error("Error in fetch:", error);
+  }
+};
+
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+    <div className="flex flex-col justify-center items-center h-screen text-white">
+        <p className="animate-bounce text-[90px] font-regular pb-1"> 
+          cookingLola 
+        </p>
+    <button className="py-4 px-4 bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110 rounded-xl transition-all font-sans"
+      onClick={isRecording ? handleStopRecording : handleStartRecording}
+    >
+      {isRecording ? "Listening..." : "How can Lola help?"}
+    </button>
+
+    {/* Show the recorded audio and the send button */}
+    {audioBlob && (
+      <div className="flex flex-col items-center space-y-4">
+        <audio src={URL.createObjectURL(audioBlob)} controls />
+        <button className="font-sans content-center" onClick={handleSendAudio}>Send to Lola</button>
+      </div>
+    )}
+
     </div>
+
+    
   );
+
 }
