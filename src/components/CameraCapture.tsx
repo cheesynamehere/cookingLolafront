@@ -5,9 +5,10 @@ export default function CameraCapture() {
   // We use "union types" (e.g., MediaStream | null) to tell TypeScript
   // that these variables can be one of several types.
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [photo, setPhoto] = useState<string | null>(null); // photo is a base64 data URL string
+  const [photo, setPhoto] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const [isSending, setIsSending] = useState(false);  
+  const [lolaReply, setLolaReply] = useState<string | null>(null);
   // --- Refs ---
   // We provide a "generic type" to useRef to tell it what kind
   // of HTML element it will be referencing.
@@ -110,6 +111,40 @@ export default function CameraCapture() {
     setError(null);
   };
 
+  const sendToLola = async () => {
+    if (!photo) return;
+    setIsSending(true);
+    setError(null);
+    setLolaReply(null);
+
+    try {
+      const blob = await (await fetch(photo)).blob();
+      const formData = new FormData();
+      formData.append('photo', blob, 'photo.png');
+
+      const response = await fetch("/api/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+      if (!response.ok) { throw new Error("Lola didn't get the photo."); }
+        
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBlob = new Blob([arrayBuffer], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setLolaReply(audioUrl);
+
+    } catch (err) {
+      console.error("Error sending photo to Lola:", err);
+      setError("There was an errror sending the photo to Lola.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+
+      
+
   // --- Render ---
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-lg p-4 mx-auto">
@@ -131,7 +166,7 @@ export default function CameraCapture() {
               hover:scale-110 ${
               stream
                 ? 'bg-red-500 hover:bg-red-600' // "Take Photo" style
-                : 'bg-[#fca020] hover:bg[#412B0DFF' // "Open Camera" style
+                : 'bg-gradient-to-b from-amber-400 to-amber-600' // "Open Camera" style
             }`}
           >
             {stream ? 'Take The Photo 📸' : 'Send a Photo to Lola'}
@@ -142,7 +177,7 @@ export default function CameraCapture() {
            <button
             onClick={retakePhoto}
             className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full px-6 py-3 
-            font-bold text-white bg-green-500 rounded-full shadow-lg transition-all duration-200 
+            font-sans text-white bg-green-500 rounded-full shadow-lg transition-all duration-200 
             hover:bg-green-600"
           >
             🔄 Retake Photo
@@ -175,6 +210,28 @@ export default function CameraCapture() {
           />
         </div>
       )}
+
+      {photo && !isSending && (
+      <button
+        onClick={sendToLola}
+        className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full px-6 py-3 
+           text-white bg-blue-500 rounded-full shadow-lg transition-all duration-200 
+          hover:bg-blue-600 mt-4 font-sans"
+      >
+        🚀 Send to Lola
+       </button>
+      )}
+
+      {isSending && (
+        <p className="mt-4 text-gray-600 font-medium">Sending photo to Lola...</p>
+      )}
+
+    {lolaReply && (
+      <div className="mt-6 flex flex-col items-center space-y-3">
+        <p className="text-lg font-semibold">🎧 Lola’s Response:</p>
+        <audio src={lolaReply} controls autoPlay className="w-full max-w-md" />
+      </div>
+    )}
     </div>
   );
 }

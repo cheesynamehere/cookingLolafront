@@ -97,10 +97,10 @@ const handleSendAudio = async () => {
   return (
 
     <div className="flex flex-col justify-center items-center h-screen text-white">
-        <p className="animate-bounce text-[90px] font-regular pb-1">
+        <p className="text-[90px] font-regular pb-1">
           cookingLola
         </p>
-        <p>
+        <p className="text-lg font-light pb-4">
           Talk to Lola while you cook! 🍳
         </p>
     <div className="w-full max-w-lg">
