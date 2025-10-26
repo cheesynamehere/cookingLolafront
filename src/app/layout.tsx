@@ -3,12 +3,19 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import { Lora } from 'next/font/google'
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"]
+});
+
 
 const lora = Lora({
   variable: "--font-lora",
   subsets: ["latin"],
   weight: ["400", "700"]
-})
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} ${inter.variable} antialiased`}
       >
         {children}
       </body>

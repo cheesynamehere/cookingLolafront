@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import CameraCapture from "@/components/CameraCapture";
+import { MdMic } from "react-icons/md";
 
 export default function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -56,16 +57,11 @@ const handleStopRecording = () => {
   }
 };
 
-// ... inside the AudioRecorder component
-
 const handleSendAudio = async () => {
   if (!audioBlob) return;
 
-  // 1. Create FormData
   const formData = new FormData();
 
-  // 2. Append the Blob (the audio) as a file
-  // "audio" is the field name the backend will read
   formData.append("audio", audioBlob, "recording.wav");
 
   try {
@@ -96,26 +92,38 @@ const handleSendAudio = async () => {
 
   return (
 
-    <div className="flex flex-col justify-center items-center h-screen text-white">
-        <p className="text-[90px] font-regular pb-1">
+    <div className="flex flex-col justify-center items-center h-screen text-white bg-animated-gradient animate-gradient">
+
+        <p className="bg-clip-text text-transparent 
+        bg-gradient-to-r from-amber-200 via-yellow-100 to-white animate-shimmer 
+        font-serif text-[90px] font-regular pb-1">
           cookingLola
         </p>
-        <p className="text-lg font-light pb-4">
+        <p className="font-serif text-lg font-light pb-4">
           Talk to Lola while you cook! 🍳
         </p>
-    <div className="w-full max-w-lg">
-      <button className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full
-      py-4 px-4
-      bg-gradient-to-b from-amber-400 to-amber-600
-      hover:bg-[#e1b474] hover:scale-110
-      rounded-full transition-all font-sans shadow-lg"
-        onClick={isRecording ? handleStopRecording : handleStartRecording}
-      >
-        {isRecording ? "Listening..." : "How can Lola help?"}
-      </button>
-    </div>
+      <div className="w-full max-w-lg">
+        <button className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full
+        py-4 px-4
+        bg-gradient-to-b from-amber-400 to-amber-600
+        hover:bg-[#e1b474] hover:scale-110
+        rounded-full transition-all shadow-lg"
+          onClick={isRecording ? handleStopRecording : handleStartRecording}
+        >
+          {isRecording ? "Listening..." : "🧑‍🍳 How can Lola help?"}
+        </button>
+      </div>
 
-    {/* Show the recorded audio and the send button */}
+    {isRecording && (
+      <div className="flex flex-col items-center mt-4">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute w-8 h-8 rounded-full bg-red-500/30 animate-ping" />
+          <MdMic className="text-red-500 w-8 h-8 animate-pulse" />
+        </div>
+        <p className="mt-2 text-sm opacity-75">Recording...</p>
+      </div>
+    )}
+
     {audioBlob && (
       <div className="flex flex-col items-center space-y-4">
         <audio className="py-4" src={URL.createObjectURL(audioBlob)} controls />
@@ -124,13 +132,14 @@ const handleSendAudio = async () => {
           disabled={isSending}
         className="shadow-lg active:scale-95 active:translate-y-[2px] cursor-pointer py-4 px-4
         bg-[#fe9907] hover:bg-[#e1b474] hover:scale-110
-        rounded-full transition-all font-sans
+        rounded-full transition-all
         transition ${isSending ? 'opacity-50 cursor-not-allowed' : ''}"
         >
           {isSending ? "Sending to Lola..." : "Send to Lola!"}
         </button>
       </div>
     )}
+
     {replyAudio && (
     <div className="flex flex-col items-center space-y-2">
       <p className="text-lg font-semibold">🎧 Lola’s Response:</p>

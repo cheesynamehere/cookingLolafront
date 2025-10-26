@@ -147,7 +147,7 @@ export default function CameraCapture() {
 
   // --- Render ---
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-lg p-4 mx-auto">
+    <div className="flex flex-col items-center justify-center w-full max-w-[542px] p-4 mx-auto">
       
       {/* --- Error Message Display --- */}
       {error && (
@@ -161,7 +161,7 @@ export default function CameraCapture() {
         {!photo && (
           <button
             onClick={stream ? takePhoto : openCamera}
-            className={`active:scale-95 active:translate-y-[1px] shadow-lg cursor-pointer font-sans 
+            className={`active:scale-95 active:translate-y-[1px] shadow-lg cursor-pointer 
               w-full px-4 py-4 text-white rounded-full shadow-lg transition-all duration-200 
               hover:scale-110 ${
               stream
@@ -169,15 +169,15 @@ export default function CameraCapture() {
                 : 'bg-gradient-to-b from-amber-400 to-amber-600' // "Open Camera" style
             }`}
           >
-            {stream ? 'Take The Photo 📸' : 'Send a Photo to Lola'}
+            {stream ? '📸 Take The Photo' : '📷 Send a Photo to Lola'}
           </button>
         )}
 
         {photo && (
            <button
             onClick={retakePhoto}
-            className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full px-6 py-3 
-            font-sans text-white bg-green-500 rounded-full shadow-lg transition-all duration-200 
+            className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full px-4 py-4 
+            text-white bg-green-500 rounded-full shadow-lg transition-all duration-200 
             hover:bg-green-600"
           >
             🔄 Retake Photo
@@ -186,7 +186,7 @@ export default function CameraCapture() {
       </div>
 
       {/* --- Video Feed --- */}
-      <div className={`w-full overflow-hidden border-4 border-gray-300 rounded-lg shadow-md ${stream ? 'block' : 'hidden'}`}>
+      <div className={`w-full overflow-hidden border-2 border-gray-300 rounded-lg shadow-md ${stream ? 'block' : 'hidden'}`}>
         <video
           ref={videoRef}
           autoPlay
@@ -216,7 +216,7 @@ export default function CameraCapture() {
         onClick={sendToLola}
         className="active:scale-95 active:translate-y-[1px] cursor-pointer w-full px-6 py-3 
            text-white bg-blue-500 rounded-full shadow-lg transition-all duration-200 
-          hover:bg-blue-600 mt-4 font-sans"
+          hover:bg-blue-600 mt-4"
       >
         🚀 Send to Lola
        </button>
